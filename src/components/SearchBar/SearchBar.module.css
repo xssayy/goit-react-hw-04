@@ -1,0 +1,35 @@
+.header {
+  background-color: rgb(176, 99, 221);
+  width: 100%;
+  padding: 15px 0;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.input {
+  padding: 10px;
+
+  border-radius: 8px;
+  border: none;
+}
+
+.btn {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #b4b4b4;
+}
+
+.form {
+  display: flex;
+  gap: 10px;
+}

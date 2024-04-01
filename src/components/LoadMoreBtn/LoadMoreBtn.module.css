@@ -1,0 +1,12 @@
+.loadMoreBtn {
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgb(176, 99, 221);
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin: 15px auto 0;
+}

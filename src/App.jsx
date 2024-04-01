@@ -1,35 +1,103 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import axios from "axios";
+// import toast from "react-hot-toast";
+
+import SearchBar from "./components/SearchBar/SearchBar";
+import ImageGallery from "./components/ImageGallery/ImageGallery";
+import Loader from "./components/Loader/Loader";
+import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [gallery, setGallery] = useState([]);
+  const [query, setQuery] = useState(null);
+  const [page, setPage] = useState(1);
+  const [maxPage, setMaxPage] = useState(null);
+  const [loader, setLoader] = useState(false);
+  const [error, setError] = useState(false);
+
+  axios.defaults.baseURL = "https://api.unsplash.com/search/photos";
+  const onSubmit = async (query) => {
+    if (query === "") {
+      //  toast.error("Field cannot be empty!"); // ПОФИКСИТЬ TOAST
+      setLoader(true);
+      setGallery([]);
+      setLoader(false);
+
+      // alert("Field cannot be empty!");
+      return;
+    }
+    setGallery([]);
+    setQuery(query);
+    try {
+      const response = await getData(query);
+      const data = response.results;
+      const totalPages = response.total_pages;
+      setGallery(data);
+      setPage(2);
+      setMaxPage(totalPages);
+    } catch (err) {
+      console.log("Error: ", err);
+    }
+  };
+  //=========
+  const handleLoadMore = async () => {
+    try {
+      const newData = await getData(query, page);
+      const newImages = newData.results;
+      setGallery((prevImages) => [...prevImages, ...newImages]);
+      scrollBy({
+        top: window.innerHeight,
+        behavior: "smooth",
+      });
+      const newPage = page + 1;
+      setPage(newPage);
+      if (newPage > maxPage) {
+        // alert("You have reached the end of collection");
+        console.log("the end");
+      }
+    } catch (err) {
+      console.log("Error: ", err);
+    }
+  };
+
+  //============
+  const getData = async (query, page = 1) => {
+    setError(false);
+    setLoader(true);
+    const response = await axios.get("", {
+      params: {
+        client_id: "RYfnsD_OSWqdJOknKnh_kbmhW4zYn8qLrrzs1hxPv5o",
+        query,
+        page,
+      },
+    });
+    if (Boolean(response.data.total) === false) {
+      setError(true);
+      setLoader(false);
+      return;
+    }
+    setLoader(false);
+    return response.data;
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <SearchBar onSubmit={onSubmit} setGallery={setGallery} />
+      {loader && page < 2 && <Loader />}
+      {gallery.length > 0 && (
+        <ImageGallery
+          items={gallery}
+          handleLoadMore={handleLoadMore}
+          page={page}
+          maxPage={maxPage}
+        >
+          {loader && page > 1 && <Loader />}
+        </ImageGallery>
+      )}
+
+      {error && <ErrorMessage />}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
