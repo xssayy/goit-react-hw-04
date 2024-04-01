@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-// import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import Modal from "react-modal";
 
 import SearchBar from "./components/SearchBar/SearchBar";
@@ -30,7 +30,11 @@ function App() {
   axios.defaults.baseURL = "https://api.unsplash.com/search/photos";
   const onSubmit = async (query) => {
     if (query === "") {
-      //  toast.error("Field cannot be empty!"); // ПОФИКСИТЬ TOAST
+      toast.error("Field cannot be empty!", {
+        duration: 2000,
+        position: "top-right",
+      });
+
       setLoader(true);
       setGallery([]);
       setLoader(false);
@@ -64,8 +68,10 @@ function App() {
       const newPage = page + 1;
       setPage(newPage);
       if (newPage > maxPage) {
-        // alert("You have reached the end of collection");
-        console.log("the end");
+        toast.error("You've reached the end of collection!", {
+          duration: 2000,
+          position: "top-right",
+        });
       }
     } catch (err) {
       console.log("Error: ", err);
@@ -85,6 +91,10 @@ function App() {
     });
     if (Boolean(response.data.total) === false) {
       setError(true);
+      toast.error("No results were found :(. Try again!", {
+        duration: 2000,
+        position: "top-right",
+      });
       setLoader(false);
       return;
     }
@@ -108,13 +118,14 @@ function App() {
         </ImageGallery>
       )}
 
+      {error && <ErrorMessage />}
+
       <ImageModal
         selectedImage={selectedImage}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
       />
-
-      {error && <ErrorMessage />}
+      <Toaster />
     </>
   );
 }
