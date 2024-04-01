@@ -1,6 +1,8 @@
 .galleryItem {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 200px;
+  border: 1px solid rgb(95, 91, 91);
+  border-radius: 15px;
   object-fit: cover;
   cursor: pointer;
 }

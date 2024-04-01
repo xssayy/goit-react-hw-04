@@ -1,11 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
 // import toast from "react-hot-toast";
+import Modal from "react-modal";
 
 import SearchBar from "./components/SearchBar/SearchBar";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
 import Loader from "./components/Loader/Loader";
 import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
+import ImageModal from "./components/ImageModal/ImageModal";
 
 function App() {
   const [gallery, setGallery] = useState([]);
@@ -15,6 +17,16 @@ function App() {
   const [loader, setLoader] = useState(false);
   const [error, setError] = useState(false);
 
+  //=====
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const openModal = (image) => {
+    setSelectedImage(image);
+    setIsOpen(true);
+  };
+  Modal.setAppElement("#root");
+  //===
   axios.defaults.baseURL = "https://api.unsplash.com/search/photos";
   const onSubmit = async (query) => {
     if (query === "") {
@@ -90,10 +102,17 @@ function App() {
           handleLoadMore={handleLoadMore}
           page={page}
           maxPage={maxPage}
+          openModal={openModal}
         >
           {loader && page > 1 && <Loader />}
         </ImageGallery>
       )}
+
+      <ImageModal
+        selectedImage={selectedImage}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
 
       {error && <ErrorMessage />}
     </>
