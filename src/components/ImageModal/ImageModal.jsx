@@ -1,5 +1,6 @@
 import Modal from "react-modal";
 import style from "./ImageModal.module.css";
+Modal.setAppElement("#root");
 const ImageModal = ({ isOpen, selectedImage, setIsOpen }) => {
   return (
     <Modal

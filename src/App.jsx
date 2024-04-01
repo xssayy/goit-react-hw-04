@@ -1,7 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import toast, { Toaster } from "react-hot-toast";
-import Modal from "react-modal";
 
 import SearchBar from "./components/SearchBar/SearchBar";
 import ImageGallery from "./components/ImageGallery/ImageGallery";
@@ -10,6 +7,7 @@ import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
 import ImageModal from "./components/ImageModal/ImageModal";
 import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn";
 import { getData } from "./services/api";
+import toast, { Toaster } from "react-hot-toast";
 
 function App() {
   const [gallery, setGallery] = useState([]);
@@ -27,26 +25,12 @@ function App() {
     setSelectedImage(image);
     setIsOpen(true);
   };
-  Modal.setAppElement("#root");
-  //===
-  const onSubmit = (newQuery) => {
-    setPage(1);
 
-    if (newQuery === "") {
-      toast.error("Field cannot be empty!", {
-        duration: 2000,
-        position: "top-right",
-      });
-      setQuery(newQuery);
-      setLoader(true);
-      setGallery([]);
-      setLoader(false);
+  const onSubmit = (newQuery) => {
+    if (newQuery === query) {
       return;
     }
-    if (newQuery === query) {
-      return; // Избегаем повторного запроса с тем же самым query
-    }
-
+    setPage(1);
     setGallery([]);
     setQuery(newQuery);
   };
