@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 import Modal from "react-modal";
@@ -8,11 +8,13 @@ import ImageGallery from "./components/ImageGallery/ImageGallery";
 import Loader from "./components/Loader/Loader";
 import ErrorMessage from "./components/ErrorMessage/ErrorMessage";
 import ImageModal from "./components/ImageModal/ImageModal";
+import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn";
+import { getData } from "./services/api";
 
 function App() {
   const [gallery, setGallery] = useState([]);
   const [query, setQuery] = useState(null);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(null);
   const [maxPage, setMaxPage] = useState(null);
   const [loader, setLoader] = useState(false);
   const [error, setError] = useState(false);
@@ -27,79 +29,83 @@ function App() {
   };
   Modal.setAppElement("#root");
   //===
-  axios.defaults.baseURL = "https://api.unsplash.com/search/photos";
-  const onSubmit = async (query) => {
-    if (query === "") {
+  const onSubmit = (newQuery) => {
+    setPage(1);
+
+    if (newQuery === "") {
       toast.error("Field cannot be empty!", {
         duration: 2000,
         position: "top-right",
       });
-
+      setQuery(newQuery);
       setLoader(true);
       setGallery([]);
       setLoader(false);
-
-      // alert("Field cannot be empty!");
       return;
     }
-    setGallery([]);
-    setQuery(query);
-    try {
-      const response = await getData(query);
-      const data = response.results;
-      const totalPages = response.total_pages;
-      setGallery(data);
-      setPage(2);
-      setMaxPage(totalPages);
-    } catch (err) {
-      console.log("Error: ", err);
+    if (newQuery === query) {
+      return; // Избегаем повторного запроса с тем же самым query
     }
+
+    setGallery([]);
+    setQuery(newQuery);
   };
   //=========
-  const handleLoadMore = async () => {
-    try {
-      const newData = await getData(query, page);
-      const newImages = newData.results;
-      setGallery((prevImages) => [...prevImages, ...newImages]);
-      scrollBy({
-        top: window.innerHeight,
-        behavior: "smooth",
-      });
-      const newPage = page + 1;
-      setPage(newPage);
-      if (newPage > maxPage) {
-        toast.error("You've reached the end of collection!", {
-          duration: 2000,
-          position: "top-right",
-        });
-      }
-    } catch (err) {
-      console.log("Error: ", err);
-    }
-  };
 
-  //============
-  const getData = async (query, page = 1) => {
-    setError(false);
-    setLoader(true);
-    const response = await axios.get("", {
-      params: {
-        client_id: "RYfnsD_OSWqdJOknKnh_kbmhW4zYn8qLrrzs1hxPv5o",
-        query,
-        page,
-      },
+  useEffect(() => {
+    if (!query || page === null || page === undefined) {
+      return;
+    }
+    const fetchData = async () => {
+      setLoader(true);
+      setError(false);
+
+      try {
+        const response = await getData(query, page);
+
+        if (!response || !response.total) {
+          toast.error("No results were found:( Try again!", {
+            duration: 2000,
+            position: "top-right",
+          });
+          setError(true);
+          return;
+        }
+
+        const newImages = response.results;
+        setGallery((prevImages) => [...prevImages, ...newImages]);
+        const totalPages = response.total_pages;
+        setMaxPage(totalPages);
+      } catch (err) {
+        console.log("Error: ", err);
+        toast.error(
+          "An error occurred while fetching data. Please try again later.",
+          {
+            duration: 2000,
+            position: "top-right",
+          }
+        );
+      } finally {
+        setLoader(false);
+      }
+    };
+
+    fetchData();
+  }, [query, page]);
+
+  const handleLoadMore = async () => {
+    setPage(page + 1);
+    scrollBy({
+      top: window.innerHeight,
+      behavior: "smooth",
     });
-    if (Boolean(response.data.total) === false) {
-      setError(true);
-      toast.error("No results were found :(. Try again!", {
+
+    if (page === maxPage) {
+      toast.error("You've reached the end of collection!", {
         duration: 2000,
         position: "top-right",
       });
-      setLoader(false);
-      return;
     }
-    setLoader(false);
-    return response.data;
   };
 
   return (
@@ -113,11 +119,12 @@ function App() {
           page={page}
           maxPage={maxPage}
           openModal={openModal}
-        >
-          {loader && page > 1 && <Loader />}
-        </ImageGallery>
+        />
       )}
-
+      {loader && page > 1 && <Loader />}
+      {gallery.length > 0 && page !== maxPage && (
+        <LoadMoreBtn handleLoadMore={handleLoadMore} />
+      )}
       {error && <ErrorMessage />}
 
       <ImageModal

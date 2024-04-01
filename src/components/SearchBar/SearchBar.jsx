@@ -8,7 +8,6 @@ const SearchBar = ({ onSubmit }) => {
         onSubmit={async (e) => {
           e.preventDefault();
           const query = e.target.elements.searchbar.value.trim().toLowerCase();
-
           await onSubmit(query);
           e.target.reset();
         }}
